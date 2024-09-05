@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="container-main-screen">
+    <div id="header">
+      <div class="two-col-group text-center large-title">
+        <img src="icons/48.png" width="20px" />
+        Cookie 管理器
+      </div>
+    </div>
+
+    <!-- Cookie 保存项管理 -->
+    <div class="wrap" id="cookie-profiles-wrap">
+      <div class="select-wrapper">
+        <select id="profile-select">
+          <option value="">-- 选择 Cookie 保存项 --</option>
+        </select>
+      </div>
+      <button class="btn-primary" role="button" id="create-profile">新建</button>
+      <button class="btn-primary" role="button" id="update-profile">更新</button>
+      <button class="btn-primary" role="button" id="delete-profile">删除</button>
+    </div>
+  </div>
+  <div>
+    <div id="messages"></div>
+    <div id="warnings"></div>
+  </div>
+</body>
+
+<script src="popup.js"></script>
+
+</html>
