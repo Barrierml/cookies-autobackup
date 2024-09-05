@@ -4,7 +4,9 @@
   "description": "允许创建多个 cookie 保存项。",
   "permissions": [
     "cookies",
-    "storage"
+    "storage",
+    "tabs",
+    "webRequest"
   ],
   "host_permissions": [
     "<all_urls>"

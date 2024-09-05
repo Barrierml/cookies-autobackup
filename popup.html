@@ -19,12 +19,37 @@
     <div class="wrap" id="cookie-profiles-wrap">
       <div class="select-wrapper">
         <select id="profile-select">
-          <option value="">-- 选择 Cookie 保存项 --</option>
+          <option value="">-- 选择你要启用的 Cookie 保存项 --</option>
         </select>
       </div>
       <button class="btn-primary" role="button" id="create-profile">新建</button>
       <button class="btn-primary" role="button" id="update-profile">更新</button>
       <button class="btn-primary" role="button" id="delete-profile">删除</button>
+      <button class="btn-primary" style="font-size: 12px;background-color: #f00;" role="button"
+        id="clear-all-cookies">出现问题？清除当前tab页面所有
+        Cookies</button>
+    </div>
+    <!-- 新增选择框 -->
+    <div id="profile-action-modal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <h3 id="modal-title"></h3>
+        <select id="profile-action-select"></select>
+        <div class="modal-buttons">
+          <button id="modal-confirm" class="btn-primary">确认</button>
+          <button id="modal-cancel" class="btn-primary" style="background-color: #ccc;">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 新增域名 IP 列表管理部分 -->
+    <div class="wrap" id="domain-ip-wrap">
+      <h3>域名 IP 列表</h3>
+      <div class="domain-ip-input">
+        <input type="text" id="domain-input" placeholder="输入域名">
+        <button class="btn-primary" id="add-domain">添加</button>
+        <button class="btn-primary" id="refresh-ip">刷新</button>
+      </div>
+      <ul id="domain-ip-list"></ul>
     </div>
   </div>
   <div>
