@@ -15,12 +15,7 @@ function initializeUI() {
   document.getElementById('modal-cancel').addEventListener('click', () => {
     document.getElementById('profile-action-modal').style.display = 'none';
   });
-  document.getElementById('add-domain').addEventListener('click', addDomain);
-  document.getElementById('refresh-ip').addEventListener('click', refreshAllDomainIps);
-  loadDomainIpList();
-
-  // 获取并更新当前域名的 IP 地址
-  updateCurrentDomainIp();
+  document.getElementById('refresh-dns-button').addEventListener('click', openDNSCachePage);
 }
 
 // 加载 cookie 保存项
@@ -40,20 +35,21 @@ function loadCookieProfiles() {
 
 // 创建新的 cookie 保存项
 function createProfile() {
-  const profileName = prompt('请输入新的 cookie 保存项名称：');
-  if (profileName) {
-    chrome.cookies.getAll({}, (cookies) => {
-      const newProfile = { name: profileName, cookies: cookies };
-      chrome.storage.local.get(COOKIE_PROFILES_KEY, (result) => {
-        const profiles = result[COOKIE_PROFILES_KEY] || [];
-        profiles.push(newProfile);
-        chrome.storage.local.set({ [COOKIE_PROFILES_KEY]: profiles }, () => {
-          showMessage('创建成功！', 'success');
-          loadCookieProfiles();
+  showProfileActionModal('创建', (profileName) => {
+    if (profileName) {
+      chrome.cookies.getAll({}, (cookies) => {
+        const newProfile = { name: profileName, cookies: cookies };
+        chrome.storage.local.get(COOKIE_PROFILES_KEY, (result) => {
+          const profiles = result[COOKIE_PROFILES_KEY] || [];
+          profiles.push(newProfile);
+          chrome.storage.local.set({ [COOKIE_PROFILES_KEY]: profiles }, () => {
+            showMessage('创建成功！', 'success');
+            loadCookieProfiles();
+          });
         });
       });
-    });
-  }
+    }
+  });
 }
 
 // 切换 cookie 保存项
@@ -162,31 +158,50 @@ function clearCurrentTabCookies() {
 function showProfileActionModal(action, callback) {
   const modal = document.getElementById('profile-action-modal');
   const title = document.getElementById('modal-title');
-  const select = document.getElementById('profile-action-select');
+  const inputContainer = document.getElementById('modal-input-container');
   const confirmBtn = document.getElementById('modal-confirm');
   const cancelBtn = document.getElementById('modal-cancel');
 
-  title.textContent = `选择要${action}的 Cookie 保存项`;
+  title.textContent = `${action} Cookie 保存项`;
   modal.style.display = 'block';
 
-  chrome.storage.local.get(COOKIE_PROFILES_KEY, (result) => {
-    const profiles = result[COOKIE_PROFILES_KEY] || [];
-    select.innerHTML = '';
-    profiles.forEach((profile) => {
-      const option = document.createElement('option');
-      option.value = profile.name;
-      option.textContent = profile.name;
-      select.appendChild(option);
+  inputContainer.innerHTML = '';
+  if (action === '创建') {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = 'profile-name-input';
+    input.placeholder = '输入配置项名称';
+    inputContainer.appendChild(input);
+  } else {
+    const select = document.createElement('select');
+    select.id = 'profile-action-select';
+    inputContainer.appendChild(select);
+
+    chrome.storage.local.get(COOKIE_PROFILES_KEY, (result) => {
+      const profiles = result[COOKIE_PROFILES_KEY] || [];
+      select.innerHTML = '';
+      profiles.forEach((profile) => {
+        const option = document.createElement('option');
+        option.value = profile.name;
+        option.textContent = profile.name;
+        select.appendChild(option);
+      });
     });
-  });
+  }
 
   confirmBtn.onclick = () => {
-    const selectedProfile = select.value;
-    if (selectedProfile) {
-      modal.style.display = 'none';
-      callback(selectedProfile);
+    let selectedValue;
+    if (action === '创建') {
+      selectedValue = document.getElementById('profile-name-input').value.trim();
     } else {
-      showMessage('请选择一个 Cookie 保存项', 'warning');
+      selectedValue = document.getElementById('profile-action-select').value;
+    }
+
+    if (selectedValue) {
+      modal.style.display = 'none';
+      callback(selectedValue);
+    } else {
+      showMessage('请输入或选择一个 Cookie 保存项', 'warning');
     }
   };
 
@@ -195,143 +210,7 @@ function showProfileActionModal(action, callback) {
   };
 }
 
-// 新增常量
-const DOMAIN_IP_KEY = 'domainIpList';
-
-// 新增函数：加载域名 IP 列表
-function loadDomainIpList() {
-  chrome.storage.local.get(DOMAIN_IP_KEY, (result) => {
-    let domainIpList = result[DOMAIN_IP_KEY] || [];
-    if (domainIpList.length === 0) {
-      domainIpList = [{ domain: 'kaisouai.com', ip: null }];
-      chrome.storage.local.set({ [DOMAIN_IP_KEY]: domainIpList });
-    }
-    const listElement = document.getElementById('domain-ip-list');
-    listElement.innerHTML = '';
-    domainIpList.forEach((item) => {
-      const li = createDomainIpListItem(item);
-      listElement.appendChild(li);
-    });
-  });
-}
-
-// 新增函数：创建域名 IP 列表项
-function createDomainIpListItem(item) {
-  const li = document.createElement('li');
-  li.className = 'domain-ip-item';
-  li.innerHTML = `
-    <span>${item.domain}</span>
-    <span>${item.ip || '正在获取...'}</span>
-    <button class="btn-remove">删除</button>
-  `;
-  li.querySelector('.btn-remove').addEventListener('click', () => removeDomain(item.domain));
-  return li;
-}
-
-// 新增函数：添加域名
-function addDomain() {
-  const domainInput = document.getElementById('domain-input');
-  const domain = domainInput.value.trim();
-  if (domain) {
-    chrome.storage.local.get(DOMAIN_IP_KEY, (result) => {
-      const domainIpList = result[DOMAIN_IP_KEY] || [];
-      if (!domainIpList.some(item => item.domain === domain)) {
-        domainIpList.push({ domain, ip: null });
-        chrome.storage.local.set({ [DOMAIN_IP_KEY]: domainIpList }, () => {
-          domainInput.value = '';
-          loadDomainIpList();
-          updateDomainIp(domain);
-        });
-      } else {
-        showMessage('该域名已存在', 'warning');
-      }
-    });
-  }
-}
-
-// 新增函数：删除域名
-function removeDomain(domain) {
-  chrome.storage.local.get(DOMAIN_IP_KEY, (result) => {
-    const domainIpList = result[DOMAIN_IP_KEY] || [];
-    const newList = domainIpList.filter(item => item.domain !== domain);
-    chrome.storage.local.set({ [DOMAIN_IP_KEY]: newList }, loadDomainIpList);
-  });
-}
-
-// 新增函数：获取并更新当前域名的 IP 地址
-function updateCurrentDomainIp() {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (tabs[0] && tabs[0].url) {
-      const url = new URL(tabs[0].url);
-      const domain = url.hostname;
-      updateDomainIp(domain);
-    }
-  });
-}
-
-// 新增函数：更新域名的 IP 地址
-function updateDomainIp(domain, callback) {
-  chrome.tabs.create({ url: `http://${domain}`, active: false }, (tab) => {
-    if (chrome.webRequest && chrome.webRequest.onCompleted) {
-      chrome.webRequest.onCompleted.addListener(
-        function listener(details) {
-          chrome.webRequest.onCompleted.removeListener(listener);
-          const ip = details.ip;
-          updateStoredIp(domain, ip);
-          chrome.tabs.remove(tab.id);
-          if (callback) callback();
-        },
-        { urls: [`*://${domain}/*`], types: ['main_frame'] }
-      );
-    } else {
-      console.error('chrome.webRequest.onCompleted 不可用');
-      updateStoredIp(domain, '无法获取');
-      chrome.tabs.remove(tab.id);
-      if (callback) callback();
-    }
-  });
-}
-
-// 新增函数：更新存储的 IP 地址
-function updateStoredIp(domain, ip, callback) {
-  chrome.storage.local.get(DOMAIN_IP_KEY, (result) => {
-    const domainIpList = result[DOMAIN_IP_KEY] || [];
-    const existingIndex = domainIpList.findIndex(item => item.domain === domain);
-    if (existingIndex !== -1) {
-      domainIpList[existingIndex].ip = ip;
-    } else {
-      domainIpList.push({ domain, ip });
-    }
-    chrome.storage.local.set({ [DOMAIN_IP_KEY]: domainIpList }, () => {
-      loadDomainIpList();
-      if (callback) callback();
-    });
-  });
-}
-
-// 新增函数：添加默认域名
-function addDefaultDomain(domain) {
-  chrome.storage.local.get(DOMAIN_IP_KEY, (result) => {
-    const domainIpList = result[DOMAIN_IP_KEY] || [];
-    if (!domainIpList.some(item => item.domain === domain)) {
-      domainIpList.push({ domain, ip: null });
-      chrome.storage.local.set({ [DOMAIN_IP_KEY]: domainIpList }, () => {
-        loadDomainIpList();
-        updateDomainIp(domain);
-      });
-    }
-  });
-}
-
-const DEFAULT_DOMAIN_ADDED_KEY = 'defaultDomainAdded';
-
-// 新增函数：刷新所有域名的 IP 地址
-function refreshAllDomainIps() {
-  chrome.storage.local.get(DOMAIN_IP_KEY, (result) => {
-    const domainIpList = result[DOMAIN_IP_KEY] || [];
-    domainIpList.forEach(item => {
-      updateDomainIp(item.domain);
-    });
-    showMessage('正在刷新所有域名的 IP 地址...', 'success');
-  });
+// 新增函数：打开 DNS 缓存清除页面
+function openDNSCachePage() {
+  chrome.tabs.create({ url: 'chrome://net-internals/#sockets' });
 }

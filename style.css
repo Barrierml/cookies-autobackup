@@ -368,3 +368,32 @@ select:focus {
   background-color: #ccc;
   margin-left: 10px;
 }
+
+/* 新增顶部工具栏样式 */
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 5px;
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #ccc;
+}
+
+.toolbar-button {
+  background-color: #4caf50;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  margin: 2px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.toolbar-button:hover {
+  background-color: #45a049;
+}
+
+/* ... 其他现有样式 ... */

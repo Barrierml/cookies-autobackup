@@ -7,6 +7,9 @@
 </head>
 
 <body>
+  <div class="toolbar">
+    <button id="refresh-dns-button" class="toolbar-button">刷新DNS缓存</button>
+  </div>
   <div class="container-main-screen">
     <div id="header">
       <div class="two-col-group text-center large-title">
@@ -33,7 +36,9 @@
     <div id="profile-action-modal" class="modal" style="display: none;">
       <div class="modal-content">
         <h3 id="modal-title"></h3>
-        <select id="profile-action-select"></select>
+        <div id="modal-input-container">
+          <!-- 这里将根据操作类型动态添加输入框或选择框 -->
+        </div>
         <div class="modal-buttons">
           <button id="modal-confirm" class="btn-primary">确认</button>
           <button id="modal-cancel" class="btn-primary" style="background-color: #ccc;">取消</button>

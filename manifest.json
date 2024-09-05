@@ -6,7 +6,9 @@
     "cookies",
     "storage",
     "tabs",
-    "webRequest"
+    "webRequest",
+    "browsingData",
+    "proxy"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -20,5 +22,8 @@
     "default_title": "Backup & restore your cookies!",
     "default_popup": "popup.html"
   },
-  "manifest_version": 3
+  "manifest_version": 3,
+  "background": {
+    "service_worker": "background.js"
+  }
 }
